@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⏰ Калькулятор времени</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        h2 {
+            color: #555;
+            margin: 25px 0 15px 0;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .time-input {
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .time-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #495057);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        }
+
+        .result {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .history-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .operations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .time-input, .btn {
+                width: 100%;
+            }
+            
+            .operations {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .total-display {
+            font-size: 1.2em;
+            color: #28a745;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⏰ Калькулятор времени</h1>
+        
+        <!-- Секция 1: Разница между двумя моментами времени -->
+        <div class="section">
+            <h2>📊 Разница между временем</h2>
+<p><em>Используется для расчета промежутка между двумя конкретными моментами</em></p>
+            <div class="input-group">
+                <input type="time" id="time1" class="time-input" value="09:00">
+                <input type="time" id="time2" class="time-input" value="17:30">
+                <button onclick="calculateDifference()" class="btn">Рассчитать разницу</button>
+            </div>
+            <div class="operations">
+                <button onclick="swapTimes()" class="btn btn-secondary">↔️ Поменять местами</button>
+                <button onclick="clearTimes()" class="btn btn-secondary">🗑️ Очистить</button>
+            </div>
+        </div>
+
+        <!-- Секция 2: Сумматор промежутков времени -->
+        <div class="section">
+            <h2>➕ Сумматор времени</h2>
+            <p><em>Используется для сложения нескольких промежутков времени (например, 2ч30м + 1ч45м)</em></p>
+            <div class="input-group">
+                <input type="number" id="hours" placeholder="Часы" class="time-input" min="0">
+                <input type="number" id="minutes" placeholder="Минуты" class="time-input" min="0" max="59">
+                <button onclick="addTime()" class="btn">Добавить время</button>
+                <button onclick="subtractTime()" class="btn btn-secondary">Вычесть время</button>
+            </div>
+            <div class="input-group">
+                <button onclick="resetTime()" class="btn btn-secondary">🔄 Сбросить сумму</button>
+                <button onclick="saveSession()" class="btn btn-secondary">💾 Сохранить сессию</button>
+            </div>
+            
+            <div id="timeHistory"></div>
+            <div id="totalTime" class="total-display"></div>
+        </div>
+
+        <!-- Секция 3: Результаты -->
+        <div class="section">
+            <h2>📈 Результаты</h2>
+            <div id="result" class="result">Здесь будут результаты расчетов...</div>
+        </div>
+    </div>
+
+    <script>
+        // ===== ПЕРЕМЕННЫЕ ДЛЯ СУММАТОРА =====
+        let timeEntries = [];
+        let totalMinutes = 0;
+
+        // ===== ФУНКЦИИ ДЛЯ РАЗНИЦЫ ВРЕМЕНИ =====
+        
+        function calculateDifference() {
+            const time1 = document.getElementById('time1').value;
+            const time2 = document.getElementById('time2').value;
+            
+            if (!time1 || !time2) {
+                showResult('⚠️ Пожалуйста, заполните оба поля времени');
+                return;
+            }
+            
+            const [h1, m1] = time1.split(':').map(Number);
+            const [h2, m2] = time2.split(':').map(Number);
+            
+            let totalMinutes1 = h1 * 60 + m1;
+            let totalMinutes2 = h2 * 60 + m2;
+            
+            // Учитываем переход через полночь
+            if (totalMinutes2 < totalMinutes1) {
+                totalMinutes2 += 24 * 60; // Добавляем сутки
+            }
+            
+            let diff = totalMinutes2 - totalMinutes1;
+            let hours = Math.floor(diff / 60);
+            let minutes = diff % 60;
+            
+            const resultText = `⏱️ Разница: ${hours} часов ${minutes} минут\n` +
+                             `(${time1} → ${time2})`;
+            
+            showResult(resultText);
+        }
+
+        function swapTimes() {
+            const time1 = document.getElementById('time1');
+            const time2 = document.getElementById('time2');
+            const temp = time1.value;
+            time1.value = time2.value;
+            time2.value = temp;
+        }
+
+        function clearTimes() {
+            document.getElementById('time1').value = '';
+            document.getElementById('time2').value = '';
+            showResult('Поля очищены');
+        }
+
+        // ===== ФУНКЦИИ ДЛЯ СУММАТОРА ВРЕМЕНИ =====
+
+        function addTime() {
+            const hours = parseInt(document.getElementById('hours').value) || 0;
+            const minutes = parseInt(document.getElementById('minutes').value) || 0;
+            
+            if (hours === 0 && minutes === 0) {
+                showResult('⚠️ Введите хотя бы часы или минуты');
+return;
+            }
+            
+            // Добавляем в историю
+            timeEntries.push({ hours, minutes });
+            totalMinutes += hours * 60 + minutes;
+            
+            updateTimeDisplay();
+            clearInputFields();
+            
+            showResult(`✅ Добавлено: ${hours}ч ${minutes}м`);
+        }
+
+        function subtractTime() {
+            const hours = parseInt(document.getElementById('hours').value) || 0;
+            const minutes = parseInt(document.getElementById('minutes').value) || 0;
+            
+            if (hours === 0 && minutes === 0) {
+                showResult('⚠️ Введите хотя бы часы или минуты');
+                return;
+            }
+            
+            // Вычитаем из общего времени
+            const subtractMinutes = hours * 60 + minutes;
+            totalMinutes = Math.max(0, totalMinutes - subtractMinutes);
+            
+            // Обновляем историю (удаляем последнюю запись, если она есть)
+            if (timeEntries.length > 0) {
+                timeEntries.pop();
+            }
+            
+            updateTimeDisplay();
+            clearInputFields();
+            
+            showResult(`❌ Вычтено: ${hours}ч ${minutes}м`);
+        }
+
+        function resetTime() {
+            timeEntries = [];
+            totalMinutes = 0;
+            updateTimeDisplay();
+            showResult('🔄 Сумматор сброшен');
+        }
+
+        function updateTimeDisplay() {
+            const historyElement = document.getElementById('timeHistory');
+            const totalElement = document.getElementById('totalTime');
+            
+            // Обновляем историю
+            if (timeEntries.length === 0) {
+                historyElement.innerHTML = '<div style="color: #6c757d; text-align: center;">История пуста</div>';
+            } else {
+                const historyHTML = timeEntries.map((entry, index) => 
+                    `<div class="history-item">${index + 1}. ${entry.hours}ч ${entry.minutes}м</div>`
+                ).join('');
+                historyElement.innerHTML = `<strong>📋 История:</strong><br>${historyHTML}`;
+            }
+            
+            // Обновляем общее время
+            const totalHours = Math.floor(totalMinutes / 60);
+            const totalMins = totalMinutes % 60;
+            
+            if (totalMinutes === 0) {
+                totalElement.textContent = 'Общее время: 0ч 0м';
+            } else {
+                totalElement.textContent = `Общее время: ${totalHours}ч ${totalMins}м`;
+                
+                // Добавляем в дни если больше 24 часов
+                if (totalHours >= 24) {
+                    const days = Math.floor(totalHours / 24);
+                    const remainingHours = totalHours % 24;
+                    totalElement.textContent += ` (${days}д ${remainingHours}ч ${totalMins}м)`;
+                }
+            }
+        }
+
+        function saveSession() {
+            localStorage.setItem('timeCalculator_totalMinutes', totalMinutes);
+            localStorage.setItem('timeCalculator_entries', JSON.stringify(timeEntries));
+            showResult('💾 Сессия сохранена! Данные восстановятся после перезагрузки страницы.');
+        }
+
+        function loadSession() {
+            const savedTotal = localStorage.getItem('timeCalculator_totalMinutes');
+            const savedEntries = localStorage.getItem('timeCalculator_entries');
+            
+            if (savedTotal && savedEntries) {
+                totalMinutes = parseInt(savedTotal);
+                timeEntries = JSON.parse(savedEntries);
+                updateTimeDisplay();
+                console.log('Сессия восстановлена');
+            }
+        }
+
+        // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
+
+        function clearInputFields() {
+            document.getElementById('hours').value = '';
+            document.getElementById('minutes').value = '';
+            document.getElementById('hours').focus();
+        }
+
+        function showResult(message) {
+            document.getElementById('result').textContent = message;
+        }
+// ===== ИНИЦИАЛИЗАЦИЯ =====
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSession(); // Восстанавливаем сохраненную сессию
+            updateTimeDisplay(); // Обновляем отображение суммы
+            
+            // Фокус на первом поле
+            document.getElementById('hours').focus();
+            
+            // Обработка Enter в полях ввода
+            document.getElementById('minutes').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addTime();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
